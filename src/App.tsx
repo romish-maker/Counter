@@ -1,51 +1,109 @@
-import React, {useEffect, useState} from 'react';
 import './App.css';
-import Increment from './Component/Inc/Increment';
-import Reset from "./Component/Reset/Reset";
+import React, {useEffect, useReducer} from "react";
+import {Settings} from "./Component/Settings/Settings";
+import {Counter} from "./Component/Counter/Counter";
+import {initialState, reducer, StateType} from "./reducer/reducer";
+import {
+    AddErrorMaxValueAC,
+    AddErrorStartValueAC,
+    ChangeMaxValueAC,
+    ChangeStartValueAC,
+    CounterAC,
+    CounterActivateEditModeAC,
+    CounterDeactivateEditModeAC,
+    DeleteErrorMaxValueAC,
+    DeleteErrorStartValueAC,
+    MaxValueAC,
+    ResetCounterAC,
+    StartValueAC
+} from "./reducer/action";
 
-function App() {
-    const [count, setCount] = useState(0)
+type AppPropsType = {
+    initialState: StateType
+}
+
+function App(props: AppPropsType) {
+    const [state, dispatch] = useReducer(reducer, initialState)
 
     useEffect(() => {
-        let ValueAsString = localStorage.getItem('counter value') // Закидывает значение в localstorage getItem
-        if (ValueAsString) {// Проверка на null | undefined
-            const newValue = JSON.parse(ValueAsString) // JSON.parse(ValueAsString) JSON.parse переводит в число
-            setCount(newValue) // Перерисовывается компонента и берет новое значение
+        const startValue = localStorage.getItem('startValue');
+        const maxValue = localStorage.getItem('maxValue');
+        if (startValue && maxValue) {
+            const newStartValue = JSON.parse(startValue)
+            const newMaxValue = JSON.parse(maxValue)
+            dispatch(StartValueAC(newStartValue))
+            dispatch(MaxValueAC(newMaxValue))
+            dispatch(ResetCounterAC())
+            if (newStartValue < 0) {
+                dispatch(CounterActivateEditModeAC())
+                dispatch(AddErrorStartValueAC())
+            }
+            if (newMaxValue <= newStartValue) {
+                dispatch(CounterActivateEditModeAC())
+                dispatch(AddErrorMaxValueAC())
+                dispatch(AddErrorStartValueAC())
+            }
         }
     }, [])
 
-    useEffect(() => {
-        localStorage.setItem('counter value', JSON.stringify(count))
-        // localStorage.setItem('counter value ', JSON.stringify(count))
-        // Фиксирует значение setItem
-        // JSON.stringify переводит в строку counter
-    }, [count])
 
-
-    const increment = () => {
-        if (count <= 4) {
-            setCount(count + 1)
-        }
-        return
+    const addIncrement = () => {
+        dispatch(CounterAC())
     }
-    const reset = () => setCount(0)
+    const resetIncrement = () => {
+        dispatch(ResetCounterAC())
+    }
+
+    const onChangeMaxValue = (value: number) => {
+        dispatch(ChangeMaxValueAC(value))
+        dispatch(DeleteErrorMaxValueAC())
+        dispatch(DeleteErrorStartValueAC())
+        if (value <= state.startValue) {
+            dispatch(AddErrorMaxValueAC())
+            dispatch(AddErrorStartValueAC())
+        }
+    }
+    const onChangeStartValue = (value: number) => {
+        dispatch(ChangeStartValueAC(value))
+        dispatch(DeleteErrorStartValueAC())
+        if (value < 0 || state.maxValue <= state.startValue || state.startValue === state.maxValue) {
+            dispatch(AddErrorStartValueAC())
+        }
+    }
+    const onActiveEditMode = () => {
+        dispatch(CounterActivateEditModeAC())
+    }
+    const onDeactivateEditMode = () => {
+        dispatch(ResetCounterAC())
+        dispatch(CounterDeactivateEditModeAC())
+    }
 
     return (
         <div className="App">
-            <div className={'wrapper'}>
-                <div className={'box'}>
-                    <h1 className={count > 4 ? "bgc" : ''}>
-                        {count}
-                    </h1>
-                    <Increment increment={increment}/>
-                    <Reset
-                        count={count}
-                        reset={reset}
-                    />
-                </div>
-            </div>
+            <Settings
+                errorStartValue={state.errorStartValue}
+                errorMaxValue={state.errorMaxValue}
+                onDeactivateEditMode={onDeactivateEditMode}
+                onActiveEditMode={onActiveEditMode}
+                onChangeStartValue={onChangeStartValue}
+                onChangeMaxValue={onChangeMaxValue}
+                maxValue={state.maxValue}
+                startValue={state.startValue}
+                counterEditMode={state.counterEditMode}
+            />
+            <Counter
+                errorStartValue={state.errorStartValue}
+                errorMaxValue={state.errorMaxValue}
+                counterEditMode={state.counterEditMode}
+                maxValue={state.maxValue}
+                minValue={state.startValue}
+                counter={state.counter}
+                addIncrement={addIncrement}
+                resetIncrement={resetIncrement}
+            />
         </div>
     );
+
 }
 
 export default App;

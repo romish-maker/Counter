@@ -1,35 +1,8 @@
 .App {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    margin-left: -130px;
-    margin-top: -130px;
-}
-
-
-.wrapper {
-    width: 260px;
-    height: 260px;
-    background-size: 100%;
-    background-color: cadetblue;
-    position: relative;
-    top: 0;
-    left: 0;
-    z-index: 5;
-    overflow: hidden;
-    border-radius: 3px;
-    box-shadow: 0 1px 5px rgb(0 0 0);
-}
-.box {
-    text-align: center;
-
-}
-.is-done {
-    opacity: 0.5;
-}
-.bgc {
-    color: red;
-}
-.is-done {
-    opacity: 0.5;
+    max-width: 1200px;
+    margin: 0 auto;
+    height: 100vh;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
